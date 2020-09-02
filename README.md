@@ -1,11 +1,10 @@
-## PRM Deductions Architecture
+### PRM Deductions architecture
 
-### How to navigate the repo
+High level architecture 
 
-Start from the `diagrams/out` folder
+![High level architecture](./diagrams/out/high-level-architecture.drawio.svg)
 
-### How to update the repo
 
-#### Diagrams
+More detailed picture
 
-Make sure that you have Draw.io desktop app installed: https://github.com/jgraph/drawio-desktop/releases. All the `drawio` source files are to be found in the `diagrams/source` folder; while all diagrams generated are found in `diagrams/out`. Use `./update_diagrams.sh` to update the generated diagrams
+![Detailed picture](./diagrams/out/data-flow.drawio.svg)
