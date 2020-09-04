@@ -1,0 +1,69 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+                   xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:hl7="urn:hl7-org:v3">|
+	<SOAP-ENV:Header>
+		<wsa:MessageID>uuid:09EFF175-08D0-42AE-950C-25CCD502A063</wsa:MessageID>
+		<wsa:Action>urn:nhs:names:services:pdsquery/QUPA_IN000008UK02</wsa:Action>
+		<wsa:To>urn:nhs:names:services:pdsquery</wsa:To>
+		<wsa:From>
+			<wsa:Address/>
+		</wsa:From>
+		<hl7:communicationFunctionRcv>
+			<hl7:device>
+				<hl7:id extension="928942012545" root="1.2.826.0.1285.0.2.0.107"/>
+			</hl7:device>
+		</hl7:communicationFunctionRcv>
+		<hl7:communicationFunctionSnd>
+			<hl7:device>
+				<hl7:id extension="918999199177" root="1.2.826.0.1285.0.2.0.107"/>
+			</hl7:device>
+		</hl7:communicationFunctionSnd>
+		<wsa:ReplyTo>
+			<wsa:Address/>
+		</wsa:ReplyTo>
+	</SOAP-ENV:Header>
+	<SOAP-ENV:Body>
+		<QUPA_IN000008UK02 xmlns="urn:hl7-org:v3" xmlns:hl7="urn:hl7-org:v3">
+			<id root="72418604-B299-4B92-813D-1D9156E1953C"/>
+			<creationTime value="20200811170444"/>
+			<versionCode code="V3NPfIT3.0"/>
+			<interactionId root="2.16.840.1.113883.2.1.3.2.4.12" extension="QUPA_IN000008UK02"/>
+			<processingCode code="P"/>
+			<processingModeCode code="T"/>
+			<acceptAckCode code="NE"/>
+			<communicationFunctionRcv>
+				<device classCode="DEV" determinerCode="INSTANCE">
+					<hl7:id
+							extension="928942012545" root="1.2.826.0.1285.0.2.0.107"/>
+				</device>
+			</communicationFunctionRcv>
+			<communicationFunctionSnd>
+				<device classCode="DEV" determinerCode="INSTANCE">
+					<hl7:id
+							extension="918999199177" root="1.2.826.0.1285.0.2.0.107"/>
+				</device>
+			</communicationFunctionSnd>
+			<ControlActEvent classCode="CACT" moodCode="EVN">
+				<author1 typeCode="AUT">
+					<AgentSystemSDS classCode="AGNT">
+						<agentSystemSDS classCode="DEV" determinerCode="INSTANCE">
+							<hl7:id extension="918999199177" root="1.2.826.0.1285.0.2.0.107"/>
+						</agentSystemSDS>
+					</AgentSystemSDS>
+				</author1>
+				<query>
+					<historicDataIndicator>
+						<value code="1" codeSystem="2.16.840.1.113883.2.1.3.2.4.17.36"/>
+						<semanticsText>historicDataIndicator</semanticsText>
+					</historicDataIndicator>
+					<person.id>
+						<value root="2.16.840.1.113883.2.1.4.1" extension="9658218865"/>
+						<semanticsText>person.id</semanticsText>
+					</person.id>
+					<retrievalItem>
+						<semanticsText>person.allData</semanticsText>
+					</retrievalItem>
+				</query>
+			</ControlActEvent>
+		</QUPA_IN000008UK02>
+	</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
