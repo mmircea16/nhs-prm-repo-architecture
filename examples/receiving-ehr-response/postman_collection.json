@@ -1,0 +1,376 @@
+{
+	"info": {
+		"_postman_id": "225fdc8c-f8e7-4e5b-ad9c-722375e40e32",
+		"name": "NHS ",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "PDS details",
+			"item": [
+				{
+					"name": "GP2GP PDS details for NHS Number",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{gp2gpHost}}/patient-demographics/{{nhsNumber}}",
+							"host": [
+								"{{gp2gpHost}}"
+							],
+							"path": [
+								"patient-demographics",
+								"{{nhsNumber}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "MHS PDS details for NHS Number",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cd03d8aa-e6ab-411d-8fd1-9b7f6700b407",
+								"exec": [
+									"const asid = pm.environment.get(\"asid\")",
+									"const nhsNumber = pm.environment.get(\"nhsNumber\")",
+									"const mhsPayload = `<QUPA_IN040000UK32 xmlns='urn:hl7-org:v3' xmlns:hl7='urn:hl7-org:v3'> <id root='some-guid'/> <creationTime value='20191127145300'/> <versionCode code='V3NPfIT3.0'/> <interactionId root='2.16.840.1.113883.2.1.3.2.4.12' extension='QUPA_IN040000UK32'/> <processingCode code='P'/> <processingModeCode code='T'/> <acceptAckCode code='NE'/> <communicationFunctionRcv>  <device classCode='DEV' determinerCode='INSTANCE'>   <hl7:id root='1.2.826.0.1285.0.2.0.107' extension='928942012545'/>  </device> </communicationFunctionRcv> <communicationFunctionSnd>  <device classCode='DEV' determinerCode='INSTANCE'>   <hl7:id     extension='${asid}' root='1.2.826.0.1285.0.2.0.107'/>  </device> </communicationFunctionSnd> <ControlActEvent classCode='CACT' moodCode='EVN'>  <author1 typeCode='AUT'>   <AgentSystemSDS classCode='AGNT'>    <agentSystemSDS classCode='DEV' determinerCode='INSTANCE'>     <id root='1.2.826.0.1285.0.2.0.107' extension='RNQ'/>    </agentSystemSDS>   </AgentSystemSDS>  </author1>  <query>   <historicDataIndicator>    <value code='0' codeSystem='2.16.840.1.113883.2.1.3.2.4.17.36'/>    <semanticsText>historicDataIndicator</semanticsText>   </historicDataIndicator>   <person.id>    <value root='2.16.840.1.113883.2.1.4.1' extension='${nhsNumber}'/>    <semanticsText>person.id</semanticsText>   </person.id>   <retrievalItem>    <semanticsText>person.allData</semanticsText>   </retrievalItem>  </query> </ControlActEvent></QUPA_IN040000UK32>`",
+									"",
+									"pm.environment.set(\"mhsPayload\", mhsPayload);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Interaction-Id",
+								"value": "{{mhsMessageType}}",
+								"type": "text"
+							},
+							{
+								"key": "wait-for-response",
+								"value": "false",
+								"type": "text"
+							},
+							{
+								"key": "from-asid",
+								"value": "{{asid}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"payload\": \"{{mhsPayload}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{mhsOutboundHost}}",
+							"host": [
+								"{{mhsOutboundHost}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDS details directly to Spine",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "urn:nhs:names:services:pdsquery/QUPA_IN000008UK02",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\"\n                   xmlns:wsa=\"http://schemas.xmlsoap.org/ws/2004/08/addressing\" xmlns:hl7=\"urn:hl7-org:v3\">|\n\t<SOAP-ENV:Header>\n\t\t<wsa:MessageID>uuid:09EFF175-08D0-42AE-950C-25CCD502A063</wsa:MessageID>\n\t\t<wsa:Action>urn:nhs:names:services:pdsquery/QUPA_IN000008UK02</wsa:Action>\n\t\t<wsa:To>urn:nhs:names:services:pdsquery</wsa:To>\n\t\t<wsa:From>\n\t\t\t<wsa:Address/>\n\t\t</wsa:From>\n\t\t<hl7:communicationFunctionRcv>\n\t\t\t<hl7:device>\n\t\t\t\t<hl7:id extension=\"928942012545\" root=\"1.2.826.0.1285.0.2.0.107\"/>\n\t\t\t</hl7:device>\n\t\t</hl7:communicationFunctionRcv>\n\t\t<hl7:communicationFunctionSnd>\n\t\t\t<hl7:device>\n\t\t\t\t<hl7:id extension=\"{{asid}}\" root=\"1.2.826.0.1285.0.2.0.107\"/>\n\t\t\t</hl7:device>\n\t\t</hl7:communicationFunctionSnd>\n\t\t<wsa:ReplyTo>\n\t\t\t<wsa:Address/>\n\t\t</wsa:ReplyTo>\n\t</SOAP-ENV:Header>\n\t<SOAP-ENV:Body>\n\t\t<QUPA_IN000008UK02 xmlns=\"urn:hl7-org:v3\" xmlns:hl7=\"urn:hl7-org:v3\">\n\t\t\t<id root=\"72418604-B299-4B92-813D-1D9156E1953C\"/>\n\t\t\t<creationTime value=\"20200811170444\"/>\n\t\t\t<versionCode code=\"V3NPfIT3.0\"/>\n\t\t\t<interactionId root=\"2.16.840.1.113883.2.1.3.2.4.12\" extension=\"QUPA_IN000008UK02\"/>\n\t\t\t<processingCode code=\"P\"/>\n\t\t\t<processingModeCode code=\"T\"/>\n\t\t\t<acceptAckCode code=\"NE\"/>\n\t\t\t<communicationFunctionRcv>\n\t\t\t\t<device classCode=\"DEV\" determinerCode=\"INSTANCE\">\n\t\t\t\t\t<hl7:id\n\t\t\t\t\t\t\textension=\"928942012545\" root=\"1.2.826.0.1285.0.2.0.107\"/>\n\t\t\t\t</device>\n\t\t\t</communicationFunctionRcv>\n\t\t\t<communicationFunctionSnd>\n\t\t\t\t<device classCode=\"DEV\" determinerCode=\"INSTANCE\">\n\t\t\t\t\t<hl7:id\n\t\t\t\t\t\t\textension=\"{{asid}}\" root=\"1.2.826.0.1285.0.2.0.107\"/>\n\t\t\t\t</device>\n\t\t\t</communicationFunctionSnd>\n\t\t\t<ControlActEvent classCode=\"CACT\" moodCode=\"EVN\">\n\t\t\t\t<author1 typeCode=\"AUT\">\n\t\t\t\t\t<AgentSystemSDS classCode=\"AGNT\">\n\t\t\t\t\t\t<agentSystemSDS classCode=\"DEV\" determinerCode=\"INSTANCE\">\n\t\t\t\t\t\t\t<hl7:id extension=\"{{asid}}\" root=\"1.2.826.0.1285.0.2.0.107\"/>\n\t\t\t\t\t\t</agentSystemSDS>\n\t\t\t\t\t</AgentSystemSDS>\n\t\t\t\t</author1>\n\t\t\t\t<query>\n\t\t\t\t\t<historicDataIndicator>\n\t\t\t\t\t\t<value code=\"1\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.17.36\"/>\n\t\t\t\t\t\t<semanticsText>historicDataIndicator</semanticsText>\n\t\t\t\t\t</historicDataIndicator>\n\t\t\t\t\t<person.id>\n\t\t\t\t\t\t<value root=\"2.16.840.1.113883.2.1.4.1\" extension=\"{{nhsNumber}}\"/>\n\t\t\t\t\t\t<semanticsText>person.id</semanticsText>\n\t\t\t\t\t</person.id>\n\t\t\t\t\t<retrievalItem>\n\t\t\t\t\t\t<semanticsText>person.allData</semanticsText>\n\t\t\t\t\t</retrievalItem>\n\t\t\t\t</query>\n\t\t\t</ControlActEvent>\n\t\t</QUPA_IN000008UK02>\n\t</SOAP-ENV:Body>\n</SOAP-ENV:Envelope>"
+						},
+						"url": {
+							"raw": "https://{{spineEndpoint}}/sync-service",
+							"protocol": "https",
+							"host": [
+								"{{spineEndpoint}}"
+							],
+							"path": [
+								"sync-service"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GPToRepo start deduction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{gp2gpAuthKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{gpToRepoHost}}/deduction-requests/{{nhsNumber}}",
+							"host": [
+								"{{gpToRepoHost}}"
+							],
+							"path": [
+								"deduction-requests",
+								"{{nhsNumber}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Requests for retrievieng details found in PDS for specified NHS Number",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "33d9fb1b-05df-46d6-bd59-bd319534890b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "dae031dd-7087-404b-826d-1a9b592b0625",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "GP2GP Health Record",
+			"item": [
+				{
+					"name": "EHR Extract to MHS inbound",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "18276b7b-b88d-4d31-ae44-f9edd219ea3f",
+								"exec": [
+									"var uuid = require(\"uuid\")",
+									"pm.environment.set(\"messageId\", uuid.v4())"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Interaction-Id",
+								"value": "RCMR_IN010000UK05",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "Content-Type",
+								"value": "multipart/related; boundary=\"--=_MIME-Boundary\"; type=\"text/xml\"; start=\"<ebXMLHeader@spine.nhs.uk>\"",
+								"type": "text"
+							},
+							{
+								"key": "wait-for-response",
+								"value": "false",
+								"type": "text",
+								"disabled": true
+							},
+							{
+								"key": "SOAPAction",
+								"value": "urn:nhs:names:services:gp2gp/COPC_IN000001UK01",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "----=_MIME-Boundary\nContent-Id: <soappart>\nContent-Type: text/xml; charset=ISO-8859-1\nContent-Transfer-Encoding: 8bit\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP:Envelope xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:eb=\"http://www.oasis-open.org/committees/ebxml-msg/schema/msg-header-2_0.xsd\" xmlns:hl7ebxml=\"urn:hl7-org:transport/ebxml/DSTUv1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3c.org/2001/XML-Schema-Instance\">\n   <SOAP:Header>\n      <eb:MessageHeader SOAP:mustUnderstand=\"1\" eb:version=\"2.0\">\n         <eb:From>\n            <eb:PartyId eb:type=\"urn:nhs:names:partyType:ocs+serviceInstance\">A91368-9199177</eb:PartyId>\n         </eb:From>\n         <eb:To>\n            <eb:PartyId eb:type=\"urn:nhs:names:partyType:ocs+serviceInstance\">A91368-9199177</eb:PartyId>\n         </eb:To>\n         <eb:CPAId>e06af803674408a9d8e9</eb:CPAId>\n         <eb:ConversationId>{{conversationId}}</eb:ConversationId>\n         <eb:Service>urn:nhs:names:services:gp2gp</eb:Service>\n         <eb:Action>RCMR_IN030000UK06</eb:Action>\n         <eb:MessageData>\n            <eb:MessageId>{{messageId}}</eb:MessageId>\n            <eb:Timestamp>2020-03-25T11:03:02Z</eb:Timestamp>\n            <eb:TimeToLive>2020-03-25T15:13:02Z</eb:TimeToLive>\n         </eb:MessageData>\n         <eb:DuplicateElimination>always</eb:DuplicateElimination>\n      </eb:MessageHeader>\n      <eb:AckRequested SOAP:mustUnderstand=\"1\" eb:version=\"2.0\" eb:signed=\"false\" SOAP:actor=\"urn:oasis:names:tc:ebxml-msg:actor:nextMSH\" />\n   </SOAP:Header>\n   <SOAP:Body>\n      <eb:Manifest SOAP:mustUnderstand=\"1\" eb:version=\"2.0\">\n         <eb:Reference xlink:href=\"cid:payload@tpp-uk.com/SystmOne/GP2GP1.1A\">\n            <eb:Schema eb:location=\"http://www.nhsia.nhs.uk/schemas/HL7-Message.xsd\" eb:version=\"2.0\" />\n            <hl7ebxml:Payload style=\"HL7\" encoding=\"XML\" version=\"3.0\" />\n         </eb:Reference>\n         <eb:Reference xlink:href=\"cid:attachment1.0@test.com\" eb:id=\"_31B75ED0-6E88-11EA-9384-E83935108FD5\">\n            <eb:Description xml:lang=\"en-gb\">31B75ED0-6E88-11EA-9384-E83935108FD5_patient-attachment.txt.txt</eb:Description>\n         </eb:Reference>\n      </eb:Manifest>\n   </SOAP:Body>\n</SOAP:Envelope>\n\n----=_MIME-Boundary\nContent-Id: <payload@tpp-uk.com/SystmOne/GP2GP1.1A>\nContent-Type: application/xml; charset=ISO-8859-1\nContent-Transfer-Encoding: 8bit\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<RCMR_IN030000UK06 xmlns=\"urn:hl7-org:v3\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"urn:hl7-org:v3 ..SchemasRCMR_IN030000UK06.xsd\">\n   <id root=\"31FA3430-6E88-11EA-9384-E83935108FD5\" />\n   <creationTime value=\"20200325110302\" />\n   <versionCode code=\"V3NPfIT3.1.10\" />\n   <interactionId root=\"2.16.840.1.113883.2.1.3.2.4.12\" extension=\"RCMR_IN030000UK06\" />\n   <processingCode code=\"P\" />\n   <processingModeCode code=\"T\" />\n   <acceptAckCode code=\"NE\" />\n   <communicationFunctionRcv typeCode=\"RCV\">\n      <device classCode=\"DEV\" determinerCode=\"INSTANCE\">\n         <id root=\"1.2.826.0.1285.0.2.0.107\" extension=\"200000001161\" />\n      </device>\n   </communicationFunctionRcv>\n   <communicationFunctionSnd typeCode=\"SND\">\n      <device classCode=\"DEV\" determinerCode=\"INSTANCE\">\n         <id root=\"1.2.826.0.1285.0.2.0.107\" extension=\"200000000149\" />\n      </device>\n   </communicationFunctionSnd>\n   <ControlActEvent classCode=\"CACT\" moodCode=\"EVN\">\n      <author1 typeCode=\"AUT\">\n         <AgentSystemSDS classCode=\"AGNT\">\n            <agentSystemSDS classCode=\"DEV\" determinerCode=\"INSTANCE\">\n               <id root=\"1.2.826.0.1285.0.2.0.107\" extension=\"200000000149\" />\n            </agentSystemSDS>\n         </AgentSystemSDS>\n      </author1>\n      <subject typeCode=\"SUBJ\" contextConductionInd=\"false\">\n         <EhrExtract classCode=\"EXTRACT\" moodCode=\"EVN\">\n            <id root=\"31FA3430-6E88-11EA-9384-E83935108FD5\" />\n            <statusCode code=\"COMPLETE\" />\n            <availabilityTime value=\"20200325110302\" />\n            <recordTarget typeCode=\"RCT\">\n               <patient classCode=\"PAT\">\n                  <id root=\"2.16.840.1.113883.2.1.4.1\" extension=\"9442964410\" />\n               </patient>\n            </recordTarget>\n            <author typeCode=\"AUT\">\n               <time value=\"20200325110302\" />\n               <AgentOrgSDS classCode=\"AGNT\">\n                  <agentOrganizationSDS classCode=\"ORG\" determinerCode=\"INSTANCE\">\n                     <id root=\"1.2.826.0.1285.0.1.10\" extension=\"M85019\" />\n                  </agentOrganizationSDS>\n               </AgentOrgSDS>\n            </author>\n            <destination typeCode=\"DST\">\n               <AgentOrgSDS classCode=\"AGNT\">\n                  <agentOrganizationSDS classCode=\"ORG\" determinerCode=\"INSTANCE\">\n                     <id root=\"1.2.826.0.1285.0.1.10\" extension=\"B86041\" />\n                  </agentOrganizationSDS>\n               </AgentOrgSDS>\n            </destination>\n            <component typeCode=\"COMP\">\n               <ehrFolder classCode=\"FOLDER\" moodCode=\"EVN\">\n                  <id root=\"31FCA552-6E88-11EA-9384-E83935108FD5\" />\n                  <statusCode code=\"COMPLETE\" />\n                  <effectiveTime>\n                     <low value=\"20120525000000\" />\n                     <high value=\"20200325102006\" />\n                  </effectiveTime>\n                  <availabilityTime value=\"20200325110302\" />\n                  <author typeCode=\"AUT\">\n                     <time value=\"20200325110302\" />\n                     <AgentOrgSDS classCode=\"AGNT\">\n                        <agentOrganizationSDS classCode=\"ORG\" determinerCode=\"INSTANCE\">\n                           <id root=\"1.2.826.0.1285.0.1.10\" extension=\"M85019\" />\n                        </agentOrganizationSDS>\n                     </AgentOrgSDS>\n                  </author>\n                  <responsibleParty typeCode=\"RESP\">\n                     <agentDirectory classCode=\"AGNT\">\n                        <part typeCode=\"PART\">\n                           <Agent classCode=\"AGNT\">\n                              <id root=\"31FCA54F-6E88-11EA-9384-E83935108FD5\" />\n                              <code code=\"704951000000106\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Other person\" />\n                              <agentPerson classCode=\"PSN\" determinerCode=\"INSTANCE\">\n                                 <name use=\"L\">\n                                    <given>Cary</given>\n                                    <family>Lord</family>\n                                 </name>\n                              </agentPerson>\n                              <representedOrganization classCode=\"ORG\" determinerCode=\"INSTANCE\">\n                                 <id root=\"2.16.840.1.113883.2.1.4.3\" extension=\"M85019\" />\n                                 <code code=\"600\" />\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </representedOrganization>\n                           </Agent>\n                        </part>\n                        <part typeCode=\"PART\">\n                           <Agent classCode=\"AGNT\">\n                              <id root=\"31FCA532-6E88-11EA-9384-E83935108FD5\" />\n                              <code code=\"704951000000106\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Other person\" />\n                              <agentPerson classCode=\"PSN\" determinerCode=\"INSTANCE\">\n                                 <name>\n                                    <family>DR DK NANDI'S PRACTICE</family>\n                                 </name>\n                              </agentPerson>\n                           </Agent>\n                        </part>\n                        <part typeCode=\"PART\">\n                           <Agent classCode=\"AGNT\">\n                              <id root=\"31FCA530-6E88-11EA-9384-E83935108FD5\" />\n                              <code code=\"704951000000106\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Other person\" />\n                              <agentPerson classCode=\"PSN\" determinerCode=\"INSTANCE\">\n                                 <name use=\"L\">\n                                    <given>Spark</given>\n                                    <family>Hill</family>\n                                 </name>\n                              </agentPerson>\n                              <representedOrganization classCode=\"ORG\" determinerCode=\"INSTANCE\">\n                                 <id root=\"2.16.840.1.113883.2.1.4.3\" extension=\"M85019\" />\n                                 <code code=\"600\" />\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </representedOrganization>\n                           </Agent>\n                        </part>\n                        <part typeCode=\"PART\">\n                           <Agent classCode=\"AGNT\">\n                              <id root=\"31FCA539-6E88-11EA-9384-E83935108FD5\" />\n                              <code code=\"704951000000106\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Other person\" />\n                              <agentPerson classCode=\"PSN\" determinerCode=\"INSTANCE\">\n                                 <name use=\"L\">\n                                    <given>Assurance</given>\n                                    <family>TeamTwo</family>\n                                 </name>\n                              </agentPerson>\n                              <representedOrganization classCode=\"ORG\" determinerCode=\"INSTANCE\">\n                                 <id root=\"2.16.840.1.113883.2.1.4.3\" extension=\"M85019\" />\n                                 <code code=\"600\" />\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </representedOrganization>\n                           </Agent>\n                        </part>\n                     </agentDirectory>\n                  </responsibleParty>\n                  <component typeCode=\"COMP\">\n                     <ehrComposition classCode=\"COMPOSITION\" moodCode=\"EVN\">\n                        <id root=\"31FCA536-6E88-11EA-9384-E83935108FD5\" />\n                        <code code=\"37351000000107\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Administration Note\" />\n                        <statusCode code=\"COMPLETE\" />\n                        <effectiveTime>\n                           <center value=\"20140212094229\" />\n                        </effectiveTime>\n                        <availabilityTime value=\"20140212094229\" />\n                        <author typeCode=\"AUT\" contextControlCode=\"OP\">\n                           <time value=\"20140212094229\" />\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA530-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </author>\n                        <location typeCode=\"LOC\">\n                           <locatedEntity classCode=\"LOCE\">\n                              <locatedPlace classCode=\"PLC\" determinerCode=\"INSTANCE\">\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </locatedPlace>\n                           </locatedEntity>\n                        </location>\n                        <Participant2 typeCode=\"PRF\" contextControlCode=\"OP\">\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA530-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </Participant2>\n                        <component typeCode=\"COMP\">\n                           <MedicationStatement classCode=\"SBADM\" moodCode=\"INT\">\n                              <id root=\"31FCA542-6E88-11EA-9384-E83935108FD5\" />\n                              <statusCode code=\"COMPLETE\" />\n                              <effectiveTime>\n                                 <low value=\"20140212\" />\n                                 <high value=\"20140812000000\" />\n                              </effectiveTime>\n                              <availabilityTime value=\"20140212\" />\n                              <consumable typeCode=\"CSM\">\n                                 <manufacturedProduct classCode=\"MANU\">\n                                    <manufacturedMaterial classCode=\"MMAT\" determinerCode=\"KIND\">\n                                       <code code=\"10688003\" codeSystem=\"2.16.840.1.113883.2.1.6.4\" displayName=\"Atorvastatin 40mg tablets\">\n                                          <translation code=\"320031002\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Atorvastatin 40mg tablets\" />\n                                       </code>\n                                    </manufacturedMaterial>\n                                 </manufacturedProduct>\n                              </consumable>\n                              <component typeCode=\"COMP\">\n                                 <ehrSupplyAuthorise classCode=\"SPLY\" moodCode=\"INT\">\n                                    <id root=\"31FCA543-6E88-11EA-9384-E83935108FD5\" />\n                                    <code code=\"394823007\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"NHS prescription\" />\n                                    <statusCode code=\"COMPLETE\" />\n                                    <effectiveTime>\n                                       <low value=\"20140212\" />\n                                       <high value=\"20140812000000\" />\n                                    </effectiveTime>\n                                    <availabilityTime value=\"20140212\" />\n                                    <repeatNumber value=\"6\" />\n                                    <quantity value=\"28\" unit=\"1\">\n                                       <translation value=\"28\">\n                                          <originalText>tablet</originalText>\n                                       </translation>\n                                    </quantity>\n                                    <pertinentInformation typeCode=\"PERT\">\n                                       <pertinentSupplyAnnotation classCode=\"OBS\" moodCode=\"EVN\">\n                                          <text>Please call surgery for a blood test</text>\n                                       </pertinentSupplyAnnotation>\n                                    </pertinentInformation>\n                                 </ehrSupplyAuthorise>\n                              </component>\n                              <pertinentInformation typeCode=\"PERT\">\n                                 <pertinentMedicationDosage classCode=\"SBADM\" moodCode=\"RMD\">\n                                    <text>take one at night</text>\n                                 </pertinentMedicationDosage>\n                              </pertinentInformation>\n                           </MedicationStatement>\n                        </component>\n                        <component typeCode=\"COMP\">\n                           <MedicationStatement classCode=\"SBADM\" moodCode=\"INT\">\n                              <id root=\"31FCA544-6E88-11EA-9384-E83935108FD5\" />\n                              <statusCode code=\"COMPLETE\" />\n                              <effectiveTime>\n                                 <low value=\"20140212\" />\n                                 <high value=\"20140812000000\" />\n                              </effectiveTime>\n                              <availabilityTime value=\"20140212\" />\n                              <consumable typeCode=\"CSM\">\n                                 <manufacturedProduct classCode=\"MANU\">\n                                    <manufacturedMaterial classCode=\"MMAT\" determinerCode=\"KIND\">\n                                       <code code=\"02782001\" codeSystem=\"2.16.840.1.113883.2.1.6.4\" displayName=\"Bendroflumethiazide 2.5mg tablets\">\n                                          <translation code=\"317919004\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Bendroflumethiazide 2.5mg tablets\" />\n                                       </code>\n                                    </manufacturedMaterial>\n                                 </manufacturedProduct>\n                              </consumable>\n                              <component typeCode=\"COMP\">\n                                 <ehrSupplyAuthorise classCode=\"SPLY\" moodCode=\"INT\">\n                                    <id root=\"31FCA545-6E88-11EA-9384-E83935108FD5\" />\n                                    <code code=\"394823007\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"NHS prescription\" />\n                                    <statusCode code=\"COMPLETE\" />\n                                    <effectiveTime>\n                                       <low value=\"20140212\" />\n                                       <high value=\"20140812000000\" />\n                                    </effectiveTime>\n                                    <availabilityTime value=\"20140212\" />\n                                    <repeatNumber value=\"6\" />\n                                    <quantity value=\"28\" unit=\"1\">\n                                       <translation value=\"28\">\n                                          <originalText>tablet</originalText>\n                                       </translation>\n                                    </quantity>\n                                 </ehrSupplyAuthorise>\n                              </component>\n                              <pertinentInformation typeCode=\"PERT\">\n                                 <pertinentMedicationDosage classCode=\"SBADM\" moodCode=\"RMD\">\n                                    <text>take one each morning</text>\n                                 </pertinentMedicationDosage>\n                              </pertinentInformation>\n                           </MedicationStatement>\n                        </component>\n                        <component typeCode=\"COMP\">\n                           <MedicationStatement classCode=\"SBADM\" moodCode=\"ORD\">\n                              <id root=\"31FCA546-6E88-11EA-9384-E83935108FD5\" />\n                              <statusCode code=\"COMPLETE\" />\n                              <effectiveTime>\n                                 <center value=\"20140212\" />\n                              </effectiveTime>\n                              <availabilityTime value=\"20140212\" />\n                              <consumable typeCode=\"CSM\">\n                                 <manufacturedProduct classCode=\"MANU\">\n                                    <manufacturedMaterial classCode=\"MMAT\" determinerCode=\"KIND\">\n                                       <code code=\"10688003\" codeSystem=\"2.16.840.1.113883.2.1.6.4\" displayName=\"Atorvastatin 40mg tablets\">\n                                          <translation code=\"320031002\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Atorvastatin 40mg tablets\" />\n                                       </code>\n                                    </manufacturedMaterial>\n                                 </manufacturedProduct>\n                              </consumable>\n                              <component typeCode=\"COMP\">\n                                 <ehrSupplyPrescribe classCode=\"SPLY\" moodCode=\"RQO\">\n                                    <id root=\"31FCA547-6E88-11EA-9384-E83935108FD5\" />\n                                    <code code=\"394823007\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"NHS prescription\" />\n                                    <statusCode code=\"COMPLETE\" />\n                                    <availabilityTime value=\"20140212\" />\n                                    <quantity value=\"28\" unit=\"1\">\n                                       <translation value=\"28\">\n                                          <originalText>tablet</originalText>\n                                       </translation>\n                                    </quantity>\n                                    <inFulfillmentOf typeCode=\"FLFS\">\n                                       <priorMedicationRef classCode=\"SBADM\" moodCode=\"INT\">\n                                          <id root=\"31FCA543-6E88-11EA-9384-E83935108FD5\" />\n                                       </priorMedicationRef>\n                                    </inFulfillmentOf>\n                                    <pertinentInformation typeCode=\"PERT\">\n                                       <pertinentSupplyAnnotation classCode=\"OBS\" moodCode=\"EVN\">\n                                          <text>Please call surgery for a blood test</text>\n                                       </pertinentSupplyAnnotation>\n                                    </pertinentInformation>\n                                 </ehrSupplyPrescribe>\n                              </component>\n                              <pertinentInformation typeCode=\"PERT\">\n                                 <pertinentMedicationDosage classCode=\"SBADM\" moodCode=\"RMD\">\n                                    <text>take one at night</text>\n                                 </pertinentMedicationDosage>\n                              </pertinentInformation>\n                           </MedicationStatement>\n                        </component>\n                        <component typeCode=\"COMP\">\n                           <MedicationStatement classCode=\"SBADM\" moodCode=\"ORD\">\n                              <id root=\"31FCA548-6E88-11EA-9384-E83935108FD5\" />\n                              <statusCode code=\"COMPLETE\" />\n                              <effectiveTime>\n                                 <center value=\"20140212\" />\n                              </effectiveTime>\n                              <availabilityTime value=\"20140212\" />\n                              <consumable typeCode=\"CSM\">\n                                 <manufacturedProduct classCode=\"MANU\">\n                                    <manufacturedMaterial classCode=\"MMAT\" determinerCode=\"KIND\">\n                                       <code code=\"02782001\" codeSystem=\"2.16.840.1.113883.2.1.6.4\" displayName=\"Bendroflumethiazide 2.5mg tablets\">\n                                          <translation code=\"317919004\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Bendroflumethiazide 2.5mg tablets\" />\n                                       </code>\n                                    </manufacturedMaterial>\n                                 </manufacturedProduct>\n                              </consumable>\n                              <component typeCode=\"COMP\">\n                                 <ehrSupplyPrescribe classCode=\"SPLY\" moodCode=\"RQO\">\n                                    <id root=\"31FCA549-6E88-11EA-9384-E83935108FD5\" />\n                                    <code code=\"394823007\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"NHS prescription\" />\n                                    <statusCode code=\"COMPLETE\" />\n                                    <availabilityTime value=\"20140212\" />\n                                    <quantity value=\"28\" unit=\"1\">\n                                       <translation value=\"28\">\n                                          <originalText>tablet</originalText>\n                                       </translation>\n                                    </quantity>\n                                    <inFulfillmentOf typeCode=\"FLFS\">\n                                       <priorMedicationRef classCode=\"SBADM\" moodCode=\"INT\">\n                                          <id root=\"31FCA545-6E88-11EA-9384-E83935108FD5\" />\n                                       </priorMedicationRef>\n                                    </inFulfillmentOf>\n                                 </ehrSupplyPrescribe>\n                              </component>\n                              <pertinentInformation typeCode=\"PERT\">\n                                 <pertinentMedicationDosage classCode=\"SBADM\" moodCode=\"RMD\">\n                                    <text>take one each morning</text>\n                                 </pertinentMedicationDosage>\n                              </pertinentInformation>\n                           </MedicationStatement>\n                        </component>\n                     </ehrComposition>\n                  </component>\n                  <component typeCode=\"COMP\">\n                     <ehrComposition classCode=\"COMPOSITION\" moodCode=\"EVN\">\n                        <id root=\"31FCA537-6E88-11EA-9384-E83935108FD5\" />\n                        <code code=\"37351000000107\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Administration Note\" />\n                        <statusCode code=\"COMPLETE\" />\n                        <effectiveTime>\n                           <center value=\"20140212095714\" />\n                        </effectiveTime>\n                        <availabilityTime value=\"20140212095714\" />\n                        <author typeCode=\"AUT\" contextControlCode=\"OP\">\n                           <time value=\"20140212095714\" />\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA530-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </author>\n                        <location typeCode=\"LOC\">\n                           <locatedEntity classCode=\"LOCE\">\n                              <locatedPlace classCode=\"PLC\" determinerCode=\"INSTANCE\">\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </locatedPlace>\n                           </locatedEntity>\n                        </location>\n                        <Participant2 typeCode=\"PRF\" contextControlCode=\"OP\">\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA530-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </Participant2>\n                        <component typeCode=\"COMP\">\n                           <MedicationStatement classCode=\"SBADM\" moodCode=\"ORD\">\n                              <id root=\"31FCA54A-6E88-11EA-9384-E83935108FD5\" />\n                              <statusCode code=\"COMPLETE\" />\n                              <effectiveTime>\n                                 <center value=\"20140212\" />\n                              </effectiveTime>\n                              <availabilityTime value=\"20140212\" />\n                              <consumable typeCode=\"CSM\">\n                                 <manufacturedProduct classCode=\"MANU\">\n                                    <manufacturedMaterial classCode=\"MMAT\" determinerCode=\"KIND\">\n                                       <code code=\"10688003\" codeSystem=\"2.16.840.1.113883.2.1.6.4\" displayName=\"Atorvastatin 40mg tablets\">\n                                          <translation code=\"320031002\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Atorvastatin 40mg tablets\" />\n                                       </code>\n                                    </manufacturedMaterial>\n                                 </manufacturedProduct>\n                              </consumable>\n                              <component typeCode=\"COMP\">\n                                 <ehrSupplyPrescribe classCode=\"SPLY\" moodCode=\"RQO\">\n                                    <id root=\"31FCA54B-6E88-11EA-9384-E83935108FD5\" />\n                                    <code code=\"394823007\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"NHS prescription\" />\n                                    <statusCode code=\"COMPLETE\" />\n                                    <availabilityTime value=\"20140212\" />\n                                    <quantity value=\"28\" unit=\"1\">\n                                       <translation value=\"28\">\n                                          <originalText>tablet</originalText>\n                                       </translation>\n                                    </quantity>\n                                    <inFulfillmentOf typeCode=\"FLFS\">\n                                       <priorMedicationRef classCode=\"SBADM\" moodCode=\"INT\">\n                                          <id root=\"31FCA543-6E88-11EA-9384-E83935108FD5\" />\n                                       </priorMedicationRef>\n                                    </inFulfillmentOf>\n                                    <pertinentInformation typeCode=\"PERT\">\n                                       <pertinentSupplyAnnotation classCode=\"OBS\" moodCode=\"EVN\">\n                                          <text>Please call surgery for a blood test</text>\n                                       </pertinentSupplyAnnotation>\n                                    </pertinentInformation>\n                                 </ehrSupplyPrescribe>\n                              </component>\n                              <pertinentInformation typeCode=\"PERT\">\n                                 <pertinentMedicationDosage classCode=\"SBADM\" moodCode=\"RMD\">\n                                    <text>take one at night</text>\n                                 </pertinentMedicationDosage>\n                              </pertinentInformation>\n                           </MedicationStatement>\n                        </component>\n                     </ehrComposition>\n                  </component>\n                  <component typeCode=\"COMP\">\n                     <ehrComposition classCode=\"COMPOSITION\" moodCode=\"EVN\">\n                        <id root=\"31FCA538-6E88-11EA-9384-E83935108FD5\" />\n                        <code code=\"37351000000107\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Administration Note\" />\n                        <statusCode code=\"COMPLETE\" />\n                        <effectiveTime>\n                           <center value=\"20200218121208\" />\n                        </effectiveTime>\n                        <availabilityTime value=\"20200218121208\" />\n                        <author typeCode=\"AUT\" contextControlCode=\"OP\">\n                           <time value=\"20200218121208\" />\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA539-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </author>\n                        <location typeCode=\"LOC\">\n                           <locatedEntity classCode=\"LOCE\">\n                              <locatedPlace classCode=\"PLC\" determinerCode=\"INSTANCE\">\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </locatedPlace>\n                           </locatedEntity>\n                        </location>\n                        <Participant2 typeCode=\"PRF\" contextControlCode=\"OP\">\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA539-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </Participant2>\n                        <component typeCode=\"COMP\">\n                           <NarrativeStatement classCode=\"OBS\" moodCode=\"EVN\">\n                              <id root=\"31FCA54C-6E88-11EA-9384-E83935108FD5\" />\n                              <text>Text File: patient-attachment.txt.txt - deduction test 1</text>\n                              <statusCode code=\"COMPLETE\" />\n                              <availabilityTime value=\"20200218121208\" />\n                              <reference typeCode=\"REFR\">\n                                 <referredToExternalDocument classCode=\"DOC\" moodCode=\"EVN\">\n                                    <id root=\"31B75ED0-6E88-11EA-9384-E83935108FD5\" />\n                                    <code code=\"25821000000100\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Original Text document\">\n                                       <originalText>Record Attachment</originalText>\n                                    </code>\n                                    <text mediaType=\"text/plain\">\n                                       <reference value=\"file://localhost/31B75ED0-6E88-11EA-9384-E83935108FD5_patient-attachment.txt.txt\" />\n                                    </text>\n                                 </referredToExternalDocument>\n                              </reference>\n                           </NarrativeStatement>\n                        </component>\n                     </ehrComposition>\n                  </component>\n                  <component typeCode=\"COMP\">\n                     <ehrComposition classCode=\"COMPOSITION\" moodCode=\"EVN\">\n                        <id root=\"31FCA54D-6E88-11EA-9384-E83935108FD5\" />\n                        <code code=\"37351000000107\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Administration Note\" />\n                        <statusCode code=\"COMPLETE\" />\n                        <effectiveTime>\n                           <center value=\"20140212\" />\n                        </effectiveTime>\n                        <availabilityTime value=\"20140212\" />\n                        <author typeCode=\"AUT\" contextControlCode=\"OP\">\n                           <time value=\"20140212\" />\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA532-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </author>\n                        <location typeCode=\"LOC\">\n                           <locatedEntity classCode=\"LOCE\">\n                              <locatedPlace classCode=\"PLC\" determinerCode=\"INSTANCE\">\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </locatedPlace>\n                           </locatedEntity>\n                        </location>\n                        <component typeCode=\"COMP\">\n                           <RegistrationStatement classCode=\"OBS\" moodCode=\"EVN\">\n                              <id root=\"31FCA54E-6E88-11EA-9384-E83935108FD5\" />\n                              <code code=\"25891000000102\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"GMS - Provisional\">\n                                 <originalText>Applied</originalText>\n                              </code>\n                              <statusCode code=\"COMPLETE\" />\n                              <effectiveTime>\n                                 <low value=\"20140212\" />\n                              </effectiveTime>\n                              <availabilityTime value=\"20140212\" />\n                              <responsibleParty typeCode=\"RESP\">\n                                 <agentRef classCode=\"AGNT\">\n                                    <id root=\"31FCA54F-6E88-11EA-9384-E83935108FD5\" />\n                                 </agentRef>\n                              </responsibleParty>\n                           </RegistrationStatement>\n                        </component>\n                     </ehrComposition>\n                  </component>\n                  <component typeCode=\"COMP\">\n                     <ehrComposition classCode=\"COMPOSITION\" moodCode=\"EVN\">\n                        <id root=\"31FCA550-6E88-11EA-9384-E83935108FD5\" />\n                        <code code=\"37351000000107\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Administration Note\" />\n                        <statusCode code=\"COMPLETE\" />\n                        <effectiveTime>\n                           <center value=\"20140212\" />\n                        </effectiveTime>\n                        <availabilityTime value=\"20140212\" />\n                        <author typeCode=\"AUT\" contextControlCode=\"OP\">\n                           <time value=\"20140212\" />\n                           <agentRef classCode=\"AGNT\">\n                              <id root=\"31FCA532-6E88-11EA-9384-E83935108FD5\" />\n                           </agentRef>\n                        </author>\n                        <location typeCode=\"LOC\">\n                           <locatedEntity classCode=\"LOCE\">\n                              <locatedPlace classCode=\"PLC\" determinerCode=\"INSTANCE\">\n                                 <name>DR DK NANDI'S PRACTICE</name>\n                                 <telecom use=\"WP\" value=\"tel:01332473669\">\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </telecom>\n                                 <addr use=\"WP\">\n                                    <streetAddressLine>342 Troy Road</streetAddressLine>\n                                    <streetAddressLine>Horsforth</streetAddressLine>\n                                    <streetAddressLine>Leeds</streetAddressLine>\n                                    <streetAddressLine>West Yorkshire</streetAddressLine>\n                                    <postalCode>LS18 5TN</postalCode>\n                                    <useablePeriod>\n                                       <low value=\"20200325\" />\n                                    </useablePeriod>\n                                 </addr>\n                              </locatedPlace>\n                           </locatedEntity>\n                        </location>\n                        <component typeCode=\"COMP\">\n                           <NarrativeStatement classCode=\"OBS\" moodCode=\"EVN\">\n                              <id root=\"31FCA551-6E88-11EA-9384-E83935108FD5\" />\n                              <text>** Care started at DR DK NANDI'S PRACTICE (Applied) **</text>\n                              <statusCode code=\"COMPLETE\" />\n                              <availabilityTime value=\"20140212\" />\n                           </NarrativeStatement>\n                        </component>\n                     </ehrComposition>\n                  </component>\n               </ehrFolder>\n            </component>\n            <inFulfillmentOf typeCode=\"FLFS\">\n               <priorEhrRequest classCode=\"EXTRACT\" moodCode=\"RQO\">\n                  <id root=\"BBBBA01A-A9D1-A411-F824-9F7A00A33757\" />\n               </priorEhrRequest>\n            </inFulfillmentOf>\n            <limitation typeCode=\"LIMIT\" inversionInd=\"true\">\n               <limitingEhrExtractSpecification classCode=\"OBS\" moodCode=\"DEF\">\n                  <id root=\"31FCA553-6E88-11EA-9384-E83935108FD5\" />\n                  <code code=\"37241000000102\" codeSystem=\"2.16.840.1.113883.2.1.3.2.4.15\" displayName=\"Entire record available to originator (administrative concept)\" />\n               </limitingEhrExtractSpecification>\n            </limitation>\n         </EhrExtract>\n      </subject>\n   </ControlActEvent>\n</RCMR_IN030000UK06>\n\n\n----=_MIME-Boundary\nContent-Id: <attachment1.0@test.com>\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: base64\n\nSGk=\n----=_MIME-Boundary--"
+						},
+						"url": {
+							"raw": "{{mhsInboundHost}}",
+							"host": [
+								"{{mhsInboundHost}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get EHR from S3",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{s3Host}}/{{bucket}}/{{conversationId}}/{{messageId}}?AWSAccessKeyId={{s3AccessKey}}&Content-Type=text/xml&Signature={{s3Signature}}",
+							"protocol": "http",
+							"host": [
+								"{{s3Host}}"
+							],
+							"path": [
+								"{{bucket}}",
+								"{{conversationId}}",
+								"{{messageId}}"
+							],
+							"query": [
+								{
+									"key": "AWSAccessKeyId",
+									"value": "{{s3AccessKey}}"
+								},
+								{
+									"key": "Content-Type",
+									"value": "text/xml"
+								},
+								{
+									"key": "Signature",
+									"value": "{{s3Signature}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GP2GP Adaptor Request EHR",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{gp2gpAuthKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"repositoryOdsCode\": \"{{odsCode}}\",\n    \"repositoryAsid\": \"{{asid}}\",\n    \"practiceOdsCode\": \"{{odsCode}}\",\n    \"practiceAsid\": \"{{asid}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{gp2gpHost}}/health-record-requests/{{nhsNumber}}",
+							"host": [
+								"{{gp2gpHost}}"
+							],
+							"path": [
+								"health-record-requests",
+								"{{nhsNumber}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "EHR Request directly to Spine",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "urn:nhs:names:services:gp2gp/RCMR_IN010000UK05",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "multipart/related; boundary=\"--=_MIME-Boundary\"; type=text/xml; start=ebXMLHeader@spine.nhs.uk",
+								"type": "text"
+							},
+							{
+								"key": "Interaction-Id",
+								"value": "RCMR_IN010000UK05",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "----=_MIME-Boundary\nContent-Id: <ebXMLHeader@spine.nhs.uk>\nContent-Type: text/xml; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<SOAP:Envelope xmlns:xsi=\"http://www.w3c.org/2001/XML-Schema-Instance\" xmlns:SOAP=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:eb=\"http://www.oasis-open.org/committees/ebxml-msg/schema/msg-header-2_0.xsd\" xmlns:hl7ebxml=\"urn:hl7-org:transport/ebXML/DSTUv1.0\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<SOAP:Header>\n <eb:MessageHeader SOAP:mustUnderstand=\"1\" eb:version=\"2.0\">\n  <eb:From>\n   <eb:PartyId eb:type=\"urn:nhs:names:partyType:ocs+serviceInstance\">A91368-9199177</eb:PartyId>\n  </eb:From>\n  <eb:To>\n   <eb:PartyId eb:type=\"urn:nhs:names:partyType:ocs+serviceInstance\">A91368-9199177</eb:PartyId>\n  </eb:To>\n  <eb:CPAId>S918999483880</eb:CPAId>\n  <eb:ConversationId>B946D333-67A8-440A-B7EC-879F97746B1D</eb:ConversationId>\n  <eb:Service>urn:nhs:names:services:gp2gp</eb:Service>\n  <eb:Action>RCMR_IN010000UK05</eb:Action>\n  <eb:MessageData>\n   <eb:MessageId>7D3293C1-91FA-4957-92BE-99B6FB3F2034</eb:MessageId>\n   <eb:Timestamp>2020-08-17T13:46:33Z</eb:Timestamp>\n  </eb:MessageData>\n<eb:DuplicateElimination/>\n</eb:MessageHeader>\n<eb:AckRequested SOAP:mustUnderstand=\"1\" eb:version=\"2.0\" eb:signed=\"false\" SOAP:actor=\"urn:oasis:names:tc:ebxml-msg:actor:nextMSH\"/>\n</SOAP:Header>\n<SOAP:Body>\n <eb:Manifest SOAP:mustUnderstand=\"1\" eb:version=\"2.0\">\n  <eb:Reference xlink:href=\"cid:7D3293C1-91FA-4957-92BE-99B6FB3F2033@spine.nhs.uk\">\n   <eb:Schema eb:location=\"http://www.nhsia.nhs.uk/schemas/HL7-Message.xsd\" eb:version=\"1.0\"/>\n   <eb:Description xml:lang=\"en\">HL7 payload</eb:Description>\n   <hl7ebxml:Payload style=\"HL7\" encoding=\"XML\" version=\"3.0\"/>\n  </eb:Reference>\n </eb:Manifest>\n</SOAP:Body>\n</SOAP:Envelope>\n\n----=_MIME-Boundary\nContent-Id: <7D3293C1-91FA-4957-92BE-99B6FB3F2033@spine.nhs.uk>\nContent-Type: text/xml; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n\n<RCMR_IN010000UK05 xmlns=\"urn:hl7-org:v3\"         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"         xsi:schemaLocation=\"urn:hl7-org:v3 RCMR_IN010000UK05.xsd\"><id root=\"B946D333-67A8-440A-B7EC-879F97746B1D\" /><creationTime value=\"20200817144632\" /><versionCode code=\"V3NPfIT3.1.10\"/><interactionId extension=\"RCMR_IN010000UK05\" root=\"2.16.840.1.113883.2.1.3.2.4.12\"/><processingCode code=\"P\"/><processingModeCode code=\"T\"/><acceptAckCode code=\"NE\"/><communicationFunctionRcv typeCode=\"RCV\"><device classCode=\"DEV\" determinerCode=\"INSTANCE\"><id extension=\"918999199177\" root=\"1.2.826.0.1285.0.2.0.107\"/></device></communicationFunctionRcv><communicationFunctionSnd typeCode=\"SND\"><device classCode=\"DEV\" determinerCode=\"INSTANCE\"><id extension=\"918999199177\" root=\"1.2.826.0.1285.0.2.0.107\"/></device></communicationFunctionSnd><ControlActEvent classCode=\"CACT\" moodCode=\"EVN\"><author1 typeCode=\"AUT\"><AgentSystemSDS classCode=\"AGNT\"><agentSystemSDS classCode=\"DEV\" determinerCode=\"INSTANCE\"><id extension=\"918999199177\" root=\"1.2.826.0.1285.0.2.0.107\"/></agentSystemSDS></AgentSystemSDS></author1><subject contextConductionInd=\"false\" typeCode=\"SUBJ\"><EhrRequest classCode=\"EXTRACT\" moodCode=\"RQO\"><id root=\"BBBBA01A-A9D1-A411-F824-9F7A00A33757\"/><recordTarget typeCode=\"RCT\"><patient classCode=\"PAT\"><id root=\"2.16.840.1.113883.2.1.4.1\" extension=\"9658218865\"/></patient></recordTarget><author typeCode=\"AUT\"><AgentOrgSDS classCode=\"AGNT\"><agentOrganizationSDS classCode=\"ORG\" determinerCode=\"INSTANCE\"><id root=\"1.2.826.0.1285.0.1.10\" extension=\"A91368\"/></agentOrganizationSDS></AgentOrgSDS></author><destination typeCode=\"DST\"><AgentOrgSDS classCode=\"AGNT\"><agentOrganizationSDS classCode=\"ORG\" determinerCode=\"INSTANCE\"><id root=\"1.2.826.0.1285.0.1.10\" extension=\"A91368\"/></agentOrganizationSDS></AgentOrgSDS></destination></EhrRequest></subject></ControlActEvent></RCMR_IN010000UK05>\n----=_MIME-Boundary--",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{spineEndpoint}}/reliablemessaging/forwardreliable",
+							"protocol": "https",
+							"host": [
+								"{{spineEndpoint}}"
+							],
+							"path": [
+								"reliablemessaging",
+								"forwardreliable"
+							]
+						},
+						"description": "doesnt work - returns error code 200"
+					},
+					"response": []
+				},
+				{
+					"name": "GPToRepo request EHR",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{gp2gpAuthKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{gpToRepoHost}}/health-record-requests/{{nhsNumber}}",
+							"host": [
+								"{{gpToRepoHost}}"
+							],
+							"path": [
+								"health-record-requests",
+								"{{nhsNumber}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

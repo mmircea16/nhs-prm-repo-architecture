@@ -1,0 +1,27 @@
+Index: docker-compose.yml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- docker-compose.yml	(revision 970ce96994ed0f39128fb3b12b308d45f34c30de)
++++ docker-compose.yml	(date 1599499739744)
+@@ -76,6 +76,9 @@
+     ports:
+       - "15672:15672"
+       - "5672:5672"
++      - "61613:61613"
++    volumes:
++      - "./rabbitmq_plugins:/etc/rabbitmq/enabled_plugins"
+     hostname: "localhost"
+   redis:
+     image: redis
+Index: rabbitmq_plugins
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- rabbitmq_plugins	(date 1599499403363)
++++ rabbitmq_plugins	(date 1599499403363)
+@@ -0,0 +1,1 @@
++[rabbitmq_federation_management,rabbitmq_management,rabbitmq_stomp].
+\ No newline at end of file
